@@ -28,7 +28,8 @@ Template:
 - [what got done — bullets, action verbs]
 
 ## Decisions
-- [decisions made, with rationale]
+- **DECISION:** [any change of priority / direction / blocker / money, with rationale.
+  The `DECISION:` prefix is literal — it is what keeps STATE.md honest, see step 2]
 
 ## Insights
 - [non-obvious things learned]
@@ -39,11 +40,17 @@ Template:
 
 Only include sections that have content. Bullets, not paragraphs.
 
-### 2. Update `memory/STATE.md` if priorities shifted
+### 2. Update `memory/STATE.md` — mechanical, not "if needed"
 
-If today's work changed priorities (something blocked, something shipped, something escalated), update the priorities section to reflect new state.
+1. Read the `Last updated: YYYY-MM-DD` line at the top of `memory/STATE.md`.
+2. Grep every `memory/daily/` file dated **on or after** that date for lines starting with
+   `DECISION:` (today's file included).
+3. Each hit must be reflected in STATE.md — priorities table, blockers, status. Edit until it is.
+4. Bump `Last updated:` to today. No hits and STATE younger than 14 days → leave it alone.
 
-Bump `Last updated: YYYY-MM-DD` to today.
+Why mechanical: "update if priorities shifted" is a judgment that quietly never fires; a date
+compare plus one grep does. Automated version of the same rule: copy
+`full/scripts/state_freshness.py` from the starter repo and run `python3 scripts/state_freshness.py`.
 
 ### 3. If the user corrected you today
 

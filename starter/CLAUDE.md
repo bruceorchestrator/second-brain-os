@@ -17,9 +17,9 @@
 
 ## Memory layout
 
-- `memory/STATE.md` — current priorities, blockers, status. Read first every session.
+- `memory/STATE.md` — current priorities, blockers, status. Read first every session. Its `Last updated:` date is a contract, not decoration — see Session start.
 - `memory/learnings.md` — mistakes, wins, patterns. Append after every correction.
-- `memory/daily/YYYY-MM-DD.md` — append-only event log per day.
+- `memory/daily/YYYY-MM-DD.md` — append-only event log per day. Any change of priority / direction / blocker / money is a line starting with `DECISION:` (`- **DECISION:** …`) — that word is what keeps STATE.md honest.
 - `memory/wiki/` — topic pages, one `.md` per concept. Cross-link via `[[topic-name]]`.
 - `memory/raw/` — immutable source dumps. Never edit, never rename.
 - `memory/outputs/` — generated deliverables (specs, reports, drafts).
@@ -29,7 +29,7 @@
 5 skills live in `agent-os/skills/`. Each is a `SKILL.md` file describing a workflow you can invoke:
 
 - **`/morning`** — load context (STATE + learnings + INDEX + latest daily), propose plan
-- **`/endday`** — save session events to daily, update STATE if priorities shifted, log user corrections to learnings
+- **`/endday`** — save session events to daily, mirror every `DECISION:` into STATE.md (mechanical step, not "if needed"), log user corrections to learnings
 - **`/ingest`** — Karpathy ingest. URL/file/text → raw/ + update wiki/ + log daily/. The single most important skill — without it the wiki never grows
 - **`/lint`** — Karpathy lint. Mechanical wiki health check + semantic pass
 - **`/review-learnings`** — curate `learnings.md` when it grows: group repeated mistakes, promote patterns, archive stale entries (proposes, never auto-applies)
@@ -77,7 +77,7 @@ Periodic health check (run when asked, or after big ingest days):
 
 Read in order:
 
-1. `memory/STATE.md`
+1. `memory/STATE.md` — then check it is still true **before acting on it**: compare its `Last updated:` date with the newest file in `memory/daily/`. If any daily dated after that date contains a line starting with `DECISION:`, or STATE is older than 14 days, mirror those decisions into STATE.md and bump the date first. No judgment involved — one date compare, one word to grep. (This is the whole reason STATE.md stays trustworthy; skipping it is how a project ends up planning from a month-old file. Automated version: `full/scripts/state_freshness.py` in the starter repo.)
 2. `memory/learnings.md` (MISTAKES section)
 3. `memory/wiki/INDEX.md`
 4. Latest `memory/daily/*.md`

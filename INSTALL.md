@@ -33,6 +33,22 @@ Then edit:
 
 That's it. 19 files, ~5 minutes. The `agent-os/skills/` folder (morning / endday / ingest / lint / review-learnings) comes along with the copy and needs no edits.
 
+### Keeping `STATE.md` honest (both modes)
+
+`STATE.md` is the file every session reads first, and it is the file that rots first: a
+decision gets written into `daily/` and nobody mirrors it. Two habits close that gap, and
+neither needs hooks (so they work in Claude Cowork, Cursor and Codex too):
+
+1. **Log decisions with the word.** Any change of priority / direction / blocker / money goes
+   into `memory/daily/YYYY-MM-DD.md` as a line starting with `DECISION:` — `- **DECISION:** …`.
+2. **Close working sessions with `/endday`.** Its STATE step is mechanical: grep `DECISION:` in
+   dailies since STATE's `Last updated:` → mirror each into STATE → bump the date.
+
+The rule the agent checks at session start: *STATE is stale if a `DECISION:` line exists in a
+daily dated after STATE's `Last updated:`, or STATE is older than 14 days.* Advanced Mode runs
+it for you (`scripts/state_freshness.py`, wired into the session context and the pre-commit
+hook); Simple Mode states it in `CLAUDE.md` § Session start so the agent does it by eye.
+
 ## Advanced Mode install
 
 ```bash
@@ -51,7 +67,7 @@ The installer:
 
 After install:
 
-1. **Verify:** `bash scripts/context.sh` — should print STATE + INDEX without errors
+1. **Verify:** `bash scripts/context.sh` — should print STATE + INDEX without errors. Until you bump `Last updated:` in `memory/STATE.md` it will open with a `STATE.md IS STALE` block — that is the freshness check working (`python3 scripts/state_freshness.py` runs it on its own; see "Keeping STATE.md honest" above)
 2. **Check the budget:** `bash scripts/context_budget.sh` — shows what every session costs you (schema + always-on rules + session context) and warns if the session context has outgrown the harness cap. Re-run it whenever you add a rule or grow `memory/`. Past the cap the harness drops the *whole* payload and injects a short preview instead, so your project state stops loading with no error — this check is the only thing that surfaces it
 3. **Replace example data** with your project's reality:
    - `memory/STATE.md` — your priorities
@@ -99,6 +115,12 @@ Likely `memory/STATE.md` doesn't exist yet. Make sure you copied the full `memor
 The staleness check fired. Two paths:
 - (a) bump the `Last updated:` date in the file you edited (the right move 95% of the time)
 - (b) `STALENESS_SKIP=1 git commit ...` if you're intentionally preserving an old date
+
+**Session context opens with `STATE.md IS STALE`**
+Not an error — the freshness predicate found a `DECISION:` line in `memory/daily/` newer than
+STATE's `Last updated:`, or STATE is older than 14 days. Mirror the listed decisions into
+`memory/STATE.md`, bump the date, and `python3 scripts/state_freshness.py` prints `fresh`.
+Fresh install: just bump the date after you replace the Acme example priorities.
 
 **Multiple AI tools open in the same project**
 Fine. They all read markdown; the schema is identical. Each tool picks its own auto-load file.

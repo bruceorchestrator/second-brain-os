@@ -50,6 +50,20 @@ demote() { sed 's/^#\{1,3\} /#### /'; }
 # Each section lives in its own variable. Dropping one is then unsetting a variable rather
 # than doing text-surgery on the assembled blob: the files we quote carry their own "## "
 # headings, so any parse-the-output approach mis-slices them.
+# STATE freshness — a mechanical predicate, not a judgment (scripts/state_freshness.py):
+# stale <=> a line starting with `DECISION:` in memory/daily/ dated after STATE's
+# `Last updated:`, or STATE older than 14 days. Silent when fresh. Emitted FIRST and never
+# dropped by the budget guard: a session that plans from a stale STATE plans wrong.
+SEC_FRESH=""
+if [ -f scripts/state_freshness.py ]; then
+  FRESH_OUT="$(python3 scripts/state_freshness.py --quiet 2>/dev/null || true)"
+  if [ -n "$FRESH_OUT" ]; then
+    SEC_FRESH="## !! STATE.md IS STALE — reconcile it before acting on the STATE below
+$FRESH_OUT
+"
+  fi
+fi
+
 SEC_STATE=""
 if [ -f memory/STATE.md ]; then
   SEC_STATE="## STATE
@@ -79,8 +93,11 @@ fi
 
 SEC_COMMITS=""
 if git rev-parse --git-dir >/dev/null 2>&1; then
+  # `|| true`: in a repo with no commits yet `git log` exits 128, and under `set -e` a failing
+  # command substitution kills the whole script — the session context came out EMPTY on a
+  # fresh `git init` project, with no error. Found 2026-09-02 while verifying the freshness block.
   SEC_COMMITS="## RECENT COMMITS
-$(git log --oneline --no-decorate -5 2>/dev/null)
+$(git log --oneline --no-decorate -5 2>/dev/null || true)
 "
 fi
 
@@ -109,7 +126,7 @@ DROPPED=""
 
 assemble() {
   printf '%s\n' "# Session Context" "Generated: $(date '+%Y-%m-%d %H:%M')" ""
-  for s in "$SEC_STATE" "$SEC_MISTAKES" "$SEC_DAILY" "$SEC_COMMITS" \
+  for s in "$SEC_FRESH" "$SEC_STATE" "$SEC_MISTAKES" "$SEC_DAILY" "$SEC_COMMITS" \
            "$SEC_CLIENT" "$SEC_WIKI" "$SEC_INDEX"; do
     [ -n "$s" ] && printf '%s\n' "$s"
   done

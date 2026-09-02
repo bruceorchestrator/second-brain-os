@@ -153,7 +153,27 @@ def check_client_current_state(path: str) -> None:
         )
 
 
-for path in staged_files():
+DECISION_RE = re.compile(r"^\s*(?:[-*+]\s+)?(?:\*\*)?DECISION:", re.MULTILINE)
+
+
+def check_decision_coupling(staged: list[str]) -> None:
+    """Warn-only: a `DECISION:` line in a staged daily must travel with memory/STATE.md.
+
+    The convention (see AGENTS.md § Session start): any change of priority / direction /
+    blocker / money is logged in daily/ as a line starting with `DECISION:`. STATE.md is
+    the mirror. A commit that carries the decision but not the mirror is how STATE rots —
+    the same predicate that `scripts/state_freshness.py` checks at session start."""
+    dailies = [p for p in staged if re.match(r"^memory/daily/[^/]+\.md$", p)]
+    hits = [p for p in dailies if DECISION_RE.search(staged_content(p))]
+    if hits and "memory/STATE.md" not in staged:
+        warnings.append(
+            f"{', '.join(hits)}: has a DECISION: line but memory/STATE.md is not in this "
+            "commit — mirror the decision into STATE.md (or run /endday) so STATE stays true"
+        )
+
+
+_staged = staged_files()
+for path in _staged:
     if path == "memory/STATE.md":
         check_simple_header(path, hard_block=True)
     elif re.match(r"^agent-os/agents/[^/]+/PROJECT_MAP\.md$", path):
@@ -162,6 +182,7 @@ for path in staged_files():
         check_simple_header(path, hard_block=False)
     elif re.match(r"^memory/projects/[^/]+\.md$", path):
         check_client_current_state(path)
+check_decision_coupling(_staged)
 
 
 if warnings:

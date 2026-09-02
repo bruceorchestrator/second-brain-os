@@ -28,7 +28,8 @@ Sections to fill (only include sections that have content):
 - [what got done — bullets, action verbs]
 
 ## Decisions
-- [decisions made, with rationale]
+- **DECISION:** [any change of priority / direction / blocker / money, with rationale.
+  The `DECISION:` prefix is literal — it is what `scripts/state_freshness.py` greps]
 
 ## Insights
 - [non-obvious things learned]
@@ -37,11 +38,17 @@ Sections to fill (only include sections that have content):
 - [what's next — sets up next morning]
 ```
 
-### 2. Update `memory/STATE.md` if priorities shifted
+### 2. Update `memory/STATE.md` — mechanical, not "if needed"
 
-If today's work changed priorities (something blocked, something shipped, something escalated), update STATE.md priority table to reflect new state.
+1. Run `python3 scripts/state_freshness.py`.
+2. For every `DECISION:` line it lists, plus every `DECISION:` you just wrote in today's daily:
+   edit the matching STATE section so STATE says what the decision says.
+3. Bump `Last updated:` to today. Re-run the script — it must print `fresh`.
+4. It printed `fresh` on the first run and today's daily has no `DECISION:` → leave STATE alone.
 
-Keep `Last updated:` field current.
+Why mechanical: "update if priorities shifted" is a judgment that quietly never fires. In the
+project this pattern comes from, STATE.md sat five weeks stale while 38 commits touched
+`daily/`. A date compare plus one grep does fire.
 
 ### 3. Update agent state if applicable
 

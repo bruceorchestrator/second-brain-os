@@ -30,11 +30,11 @@ Communication preferences live in `agent-os/rules/language.md` (also `.template`
 | `memory/raw/` | Immutable source dumps (articles, transcripts, scrapes) | Never edit, never rename |
 | `memory/wiki/` | Topic pages, cross-linked via `[[topic-name]]` | LLM-maintained |
 | `memory/outputs/` | Generated deliverables (specs, research, drafts) | Append + iterate |
-| `memory/STATE.md` | Current priorities, blockers | Update as state shifts |
+| `memory/STATE.md` | Current priorities, blockers | Mirror of every `DECISION:` in daily/; `scripts/state_freshness.py` flags it stale otherwise |
 | `memory/learnings/` | `mistakes` / `patterns` / `decisions` / `constraints` / `archive` | Append `mistakes.md`; curate the rest |
 | `memory/projects/*.md` | Per-project / per-client live state | Update as relationships evolve |
 | `memory/inbox/` | Un-triaged capture + the `/mine-learnings` review queue | Drained as you triage |
-| `memory/daily/*.md` | Append-only event log per day | New section per session |
+| `memory/daily/*.md` | Append-only event log per day; any change of priority / direction / blocker / money is a line starting with `DECISION:` | New section per session |
 | `memory/INDEX.md` | Navigation map | Update on structural changes |
 
 ### Operations
@@ -49,7 +49,7 @@ Three operations from Karpathy's pattern, implemented as skills:
 
 Read in order at the start of every session:
 
-1. `memory/STATE.md` — current priorities and blockers
+1. `memory/STATE.md` — current priorities and blockers. **Check it is still true before acting on it:** `python3 scripts/state_freshness.py` (the Claude Code session hook runs it for you and prints a `STATE.md IS STALE` block first; in tools without hooks — Cowork, Codex, Cursor — run it, or do it by eye: STATE's `Last updated:` vs. any later daily with a `DECISION:` line, or >14 days old). Stale → mirror the listed decisions into STATE.md and bump the date first. No judgment: a date compare and one grep
 2. `memory/learnings/mistakes.md` — past corrections (the hot file; read every session)
 3. `memory/INDEX.md` + `memory/wiki/INDEX.md` — navigation maps
 4. Latest `memory/daily/*.md` — recent events
@@ -75,7 +75,9 @@ When a fact lives in multiple places, the table below defines which is authorita
 
 **Rule:** when you touch one source, scan its mirrors for stale markers and bring them along in the same commit. Test counts, status flags, deadline dates, and "as of YYYY-MM-DD" markers drift fastest.
 
-The pre-commit hook (`scripts/git-hooks/check-staleness.py`) hard-blocks commits where a current-state file's body changed but the date marker is stale.
+The pre-commit hook (`scripts/git-hooks/check-staleness.py`) hard-blocks commits where a current-state file's body changed but the date marker is stale, and warns when a staged daily carries a `DECISION:` line without `memory/STATE.md` in the same commit.
+
+**STATE freshness is one predicate in three places** — `scripts/state_freshness.py`: stale ⇔ a `DECISION:` line in daily/ after STATE's `Last updated:`, or >14 days. The session-start context prints it first, `/endday` step 2 enforces it, the pre-commit hook couples the two files. "Update STATE if priorities shifted" was a judgment that never fired; this is a date compare and a grep.
 
 ---
 

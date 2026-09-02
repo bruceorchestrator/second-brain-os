@@ -15,6 +15,7 @@ He intentionally keeps the gist abstract and invites the community to instantiat
 - A **trace → learnings loop** (`/mine-learnings`): mine a session transcript for corrections + repeated tool failures into a human-reviewed candidate queue
 - Memory-loop scaling by commit class
 - Mechanical governance (pre-commit staleness check, source-of-truth map)
+- A **STATE freshness predicate** so `STATE.md` cannot rot silently: decisions are logged in `daily/` as `DECISION:` lines, and one rule — *a `DECISION:` after STATE's date, or STATE older than 14 days, means stale* — is checked by the session context, by `/endday`, and by the pre-commit hook. Works with zero hooks (Claude Cowork, Cursor, Codex) as a two-line reading rule in `CLAUDE.md`
 - Tool adapters (Claude Code, Codex, Cursor, Aider, Windsurf)
 
 The pattern is his. The packaging is one way to use it on real projects.
@@ -61,6 +62,7 @@ Each piece is independent:
 - Want only the wiki pattern? → copy `starter/memory/` + `starter/AGENTS.md`
 - Want only the rules? → copy `full/agent-os/rules/`
 - Want only the staleness check? → copy `full/scripts/git-hooks/`
+- Want only "STATE.md never silently rots"? → copy `full/scripts/state_freshness.py` and adopt the `DECISION:` line convention in `daily/`
 
 ## When to use which mode
 

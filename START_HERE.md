@@ -34,7 +34,7 @@ Wait for the answers. Ask a follow-up only where an answer blocks a step.
 
 ## 2. Fill the memory
 Write only what the owner said. What they did not say stays `FILL IN` or is left out.
-- `memory/USER.md`: answers 1, 2, 3, 5, 6 and how they like to work. Set `Last updated:` to today.
+- `memory/USER.md`: answers 1, 2, 3, 5, 6. Leave § How they like to work empty: it fills over time from the owner's corrections. Set `Last updated:` to today.
 - `CLAUDE.md`: § Owner (two lines and the chat language) and § Hard limits (answer 7).
 - `memory/STATE.md`: replace every example line. Focus = answer 4. Active work = the agent you are about to build. `Last updated:` today. Remove the `kit-example` marker.
 - `memory/daily/<today>.md`: what was set up, plus a `- **DECISION:** ...` line for the focus and one for which agent goes first.

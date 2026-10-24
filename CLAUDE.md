@@ -31,7 +31,7 @@ goes to `memory/`; how a job is done stays in its folder.
 | start or end of the day | `/morning`, `/endday` |
 | anything else | answer here; read `memory/wiki/INDEX.md` first when the topic may be known already |
 
-First session after cloning, or `memory/USER.md` still holds FILL IN lines: follow `START_HERE.md`.
+First session after cloning, or the session digest says SETUP NOT DONE: follow `START_HERE.md`.
 
 ## Working contract
 - Do what was asked, not adjacent improvements. Mention a worthwhile extra in one line.

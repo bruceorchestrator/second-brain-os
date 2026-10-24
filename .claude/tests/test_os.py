@@ -72,6 +72,12 @@ def make_agent(root: Path, name: str, stages=("01_research", "02_ideas")) -> Pat
     return folder
 
 
+def pristine() -> bool:
+    """True while this repository is the unconfigured kit: setup removes the kit-example
+    marker from memory/STATE.md (START_HERE.md step 2; check_os.py --after-setup enforces it)."""
+    return "kit-example" in (ROOT / "memory" / "STATE.md").read_text(encoding="utf-8")
+
+
 def check(root: Path, *args: str):
     return run(CHECK, "", "--root", str(root), *args)
 
@@ -448,7 +454,9 @@ class TestShippedKit(unittest.TestCase):
             self.assertTrue((ROOT / ".claude" / "skills" / name / "SKILL.md").is_file(), name)
 
     def test_paths_named_in_setup_files_exist(self):
-        for doc in ("CLAUDE.md", "START_HERE.md", "agents/README.md", "README.md"):
+        # START_HERE.md names the example files that setup deletes: check it only before setup.
+        docs = ["CLAUDE.md", "agents/README.md", "README.md"] + (["START_HERE.md"] if pristine() else [])
+        for doc in docs:
             text = (ROOT / doc).read_text(encoding="utf-8")
             for path in re.findall(r"`((?:memory|agents|\.claude)/[A-Za-z0-9_./-]+\.(?:md|py|json))`", text):
                 if "YYYY" in path:  # a naming pattern, not a file

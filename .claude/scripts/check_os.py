@@ -192,7 +192,7 @@ def leftovers(root: Path, agents: list[str]) -> list[str]:
         rel = path.relative_to(root).as_posix()
         if EXAMPLE_MARKER in text:
             found.append(f"{rel}: example content left (`{EXAMPLE_MARKER}` marker)")
-        count = without_code(text).count(PLACEHOLDER)
+        count = without_code(text, inline=True).count(PLACEHOLDER)
         if count:
             found.append(f"{rel}: {count} `{PLACEHOLDER}` left")
     return found

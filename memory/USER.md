@@ -21,7 +21,8 @@ answers; a line the owner did not give stays empty. Never invent one.
 - FILL IN: who reads or buys what the owner makes, if anyone does. Agents that write for an audience read this.
 
 ## How they like to work
-- FILL IN: e.g. short answers, one recommendation instead of a menu, voice notes instead of typing
+<!-- Left empty at setup. Filled over time from how the owner corrects the AI: short answers,
+one recommendation instead of a menu, voice notes instead of typing... -->
 
 ## Accounts and tools
 - FILL IN: names only (X, Telegram, Gmail, Notion...). Never passwords, tokens or keys.

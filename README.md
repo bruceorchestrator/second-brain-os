@@ -68,7 +68,7 @@ It never invents your facts or your writing; what you do not tell it stays empty
 
 ## Credits
 - Memory: [Andrej Karpathy, LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
-- Agents as folders: Interpretable Context Methodology by Jake Van Clief ([repo](https://github.com/RinDig/Interpretable-Context-Methodology-ICM-)).
+- Agents as folders: Interpretable Context Methodology by Jake Van Clief ([repo](https://github.com/RinDig/Interpretable-Context-Methodology)).
 
 Built by [Borys Puchkov](https://x.com/BorysPuchkov), founder of
 [ChangesWithAI](https://changeswithai.com). This is the structure his own company runs on,

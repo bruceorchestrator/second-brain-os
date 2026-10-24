@@ -1,107 +1,76 @@
-# agent-os-starter
+# Second Brain OS
 
-> A concrete implementation of [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), adapted for AI coding agents working in real codebases.
+A personal operating system for your AI agent, made of plain folders and markdown. Two parts:
 
-Drop this into your project so your AI agent has **persistent memory, behavioral discipline, and operational continuity** across sessions. Works with Claude Code, Codex, Cursor, Aider, Windsurf — any agent that reads markdown.
+- **`memory/`: one shared brain.** What you know, what you decided, what matters now, and what
+  the AI learned from your corrections. Built on [Andrej Karpathy's LLM wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f):
+  sources are saved untouched, knowledge is compiled into linked topic pages, and the AI keeps it tidy.
+- **`agents/`: one folder per job.** "I need Twitter research" becomes `agents/twitter/`: an
+  identity file, a routing table, your voice and rules, and numbered stages (research, ideas,
+  drafts), each with its own instructions and its own output folder. You check and edit the
+  ideas before any draft is written. Nothing is posted or sent without your yes.
 
-## Why Karpathy is credited
+Agents read the shared memory and never keep their own copy of it, so what you teach the
+system once reaches every agent.
 
-The foundational idea — **3-layer wiki** (raw / wiki / outputs) + **3 operations** (ingest / query / lint) — is Andrej Karpathy's. See his [LLM wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). All flowers to him.
-
-He intentionally keeps the gist abstract and invites the community to instantiate it. This repo is one such instantiation, focused on the **working-codebase use case**, and adds:
-
-- Live operational state (`STATE.md`, `projects/`, `daily/`, `learnings/`)
-- Multi-domain agent state (4-file pattern: `STATUS` / `MEMORY` / `PROJECT_MAP` / `RULES`)
-- A **trace → learnings loop** (`/mine-learnings`): mine a session transcript for corrections + repeated tool failures into a human-reviewed candidate queue
-- Memory-loop scaling by commit class
-- Mechanical governance (pre-commit staleness check, source-of-truth map)
-- A **STATE freshness predicate** so `STATE.md` cannot rot silently: decisions are logged in `daily/` as `DECISION:` lines, and one rule — *a `DECISION:` after STATE's date, or STATE older than 14 days, means stale* — is checked by the session context, by `/endday`, and by the pre-commit hook. Works with zero hooks (Claude Cowork, Cursor, Codex) as a two-line reading rule in `CLAUDE.md`
-- Tool adapters (Claude Code, Codex, Cursor, Aider, Windsurf)
-
-The pattern is his. The packaging is one way to use it on real projects.
-
-## Two modes
-
-| | Simple Mode | Advanced Mode |
-|---|---|---|
-| Files | 19 | ~70 |
-| Memory | single `memory/learnings.md` (MISTAKES / WINS / PATTERNS in one file) | `memory/learnings/` split by lifecycle (`mistakes` / `patterns` / `decisions` / `constraints` / `archive`) + `inbox/` candidate queue |
-| Includes | `memory/`, `AGENTS.md`/`CLAUDE.md`, 5 core skills (`morning`, `endday`, `ingest`, `lint`, `review-learnings`) | + more skills incl. **`/mine-learnings`** (trace → learnings loop), `agent-os/{rules,agents,hooks}/`, `adapters/`, `scripts/` (incl. `mine_learnings.py` + tests) |
-| Best for | Solo + 1–2 collaborators, getting started, personal knowledge wiki | Multi-person, multi-domain, governance needed |
-| Setup time | 5 min (copy + adapt) | 15 min (`install.sh` + adapt) |
-
-Both build on the same foundation. **Start Simple, graduate to Advanced when you outgrow it** — just copy `full/agent-os/` over your starter setup. The single `learnings.md` becomes the `learnings/` directory once it outgrows one file.
-
-## Install
-
-### Option A — paste-into-AI (recommended)
-
-1. Open your existing project in your AI agent (Claude Code, Codex, Cursor, etc.)
-2. Paste the contents of [`INSTALL_PROMPT.md`](INSTALL_PROMPT.md) into the chat
-3. The AI inspects your project, picks Simple or Advanced, and installs the adapted version
-
-### Option B — manual
-
-```bash
-git clone https://github.com/bruceorchestrator/agent-os-starter
-cd /path/to/your-project/
-
-# Advanced Mode (recommended for real projects)
-bash /path/to/agent-os-starter/full/scripts/install.sh
-
-# Or Simple Mode (just copy starter/ into your project)
-cp -R /path/to/agent-os-starter/starter/. /path/to/your-project/
+```
+memory/                       agents/
+├── USER.md     who you are   ├── INDEX.md       the active agents
+├── STATE.md    what matters  ├── README.md      how an agent folder works
+├── daily/      what happened ├── _template/     copy this for a new agent
+├── wiki/       what you know └── twitter/       a filled example
+├── raw/        sources            ├── CLAUDE.md      who it is, what it never does
+├── outputs/    reports            ├── CONTEXT.md     modes and gates
+└── learnings/  lessons            ├── _config/       voice, rules, sources
+                                   ├── stages/01_research, 02_ideas, 03_drafts
+                                   └── log.md         every run and your verdict
 ```
 
-See [`INSTALL.md`](INSTALL.md) for the full manual walkthrough.
+## Set it up (about 20 minutes)
+You need an AI coding agent that can read and write files and run commands.
+[Claude Code](https://claude.com/claude-code) gets everything (skills, session hooks);
+Codex, Cursor and others read `AGENTS.md` and follow the same files by hand. Plus git and
+Python 3.9+.
 
-### Option C — copy what you want
+**Option A.** Clone it and let the agent do the rest:
+```bash
+git clone https://github.com/bruceorchestrator/second-brain-os my-brain
+cd my-brain
+claude
+```
+Then say: *"Set up my second brain."*
 
-Each piece is independent:
+**Option B.** Give your agent the link: *"Read https://github.com/bruceorchestrator/second-brain-os/blob/main/START_HERE.md and set up my second brain."*
 
-- Want only the wiki pattern? → copy `starter/memory/` + `starter/AGENTS.md`
-- Want only the rules? → copy `full/agent-os/rules/`
-- Want only the staleness check? → copy `full/scripts/git-hooks/`
-- Want only "STATE.md never silently rots"? → copy `full/scripts/state_freshness.py` and adopt the `DECISION:` line convention in `daily/`
+Either way the agent follows [`START_HERE.md`](START_HERE.md): it asks you 8 questions about
+you, your goals and the jobs you want AI to do, fills the memory with your answers, sorts the
+jobs into agents and skills, builds your first agent, and checks that everything holds together.
+It never invents your facts or your writing; what you do not tell it stays empty.
 
-## When to use which mode
+## Every day
+| Say | What happens |
+|---|---|
+| `/morning` | what happened last time, your priorities, agents waiting for you, one first step |
+| "run twitter" (or your agent's phrase) | the agent walks its stages and stops at the gate for your edits |
+| "ingest <link>" | the source is saved and compiled into the wiki |
+| `/new-agent` | a new job becomes a new folder, after you approve its stages |
+| `/endday` | the day is logged, STATE is updated, lessons from your corrections are proposed |
+| `/lint` | a health check of the memory and the agent folders |
 
-**Simple Mode** if:
-- You're new to AI memory systems
-- Project is small or solo
-- You want minimum overhead
-
-**Advanced Mode** if:
-- You have a real team (or will soon)
-- Multiple AI agents work in parallel
-- Codebase has clear domain boundaries (backend / frontend / infra / data)
-- You want pre-commit governance against drift
-
-Either way, the foundation is the same Karpathy wiki. Advanced just adds discipline scaffolding.
-
-## Tour
-
-See [`EXAMPLE_TOUR.md`](EXAMPLE_TOUR.md) — 5-minute walkthrough of the fictional Acme Notes example, showing what changes for you day-to-day after the install.
-
-## What this is NOT
-
-- A code editor or IDE
-- A code generator (your AI does that; agent-os just gives it persistent context)
-- A focus / discipline tool (still on you to ship)
-- A drop-in replacement for project management — agent-os is operational memory, not Linear/Jira
+## What keeps it honest
+- `python3 .claude/scripts/check_os.py` checks the structure: wiki links, pages missing from
+  the index, agent folders missing a stage contract, agents not registered.
+- `python3 .claude/scripts/state_freshness.py` flags `STATE.md` when a decision in the daily log
+  has not been carried into it, or when it is older than 14 days.
+- A session-start hook gives the AI a digest of your memory and agents every time
+  (Claude Code), and a stop hook reminds it when STATE fell behind.
+- Tests: `python3 -B -m unittest discover -s .claude/tests`.
 
 ## Credits
+- Memory: [Andrej Karpathy, LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+- Agents as folders: Interpretable Context Methodology by Jake Van Clief ([repo](https://github.com/RinDig/Interpretable-Context-Methodology-ICM-)).
 
-- **[Andrej Karpathy's LLM wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)** — the foundational pattern. All flowers to him.
-- **[Anthropic Claude Code](https://docs.claude.com/claude-code)** — runtime primitives (CLAUDE.md, auto-loaded rules, skills, hooks) that make this pattern executable inside an AI coding agent.
-- **This repo** — the adaptation: extending Karpathy's personal-knowledge wiki into operational state + agent state + governance + memory-loop discipline, so the pattern survives when applied to real projects with real deadlines and real agents.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
-
-## Status
-
-Early days. Pattern is stable; specific files may evolve. Pin to a commit hash if reproducibility matters.
-
-Issues and PRs welcome.
+Built by [Borys Puchkov](https://x.com/BorysPuchkov), founder of
+[ChangesWithAI](https://changeswithai.com). This is the structure his own company runs on,
+cleaned up for anyone to copy. The earlier `agent-os-starter` layout is kept under the git tag
+`v1`. MIT license.

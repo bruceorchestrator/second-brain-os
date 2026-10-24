@@ -1,0 +1,3 @@
+# Written by .claude/scripts/state_freshness.py while it records review receipts
+.state-receipts.lock
+.state-receipts-*

@@ -134,6 +134,9 @@ def check(root: Path, today: date | None = None, max_age: int = DEFAULT_MAX_AGE)
         except ValueError:
             return {"ok": False, "error": "invalid `Last updated:` date in STATE.md"}
         result["state_date"] = state_date.isoformat()
+        if state_date > today:
+            result["reasons"].append(f"`Last updated: {state_date}` is in the future (today {today})")
+            state_date = today  # never trust a future date: age and review cutoff count from today
         age = (today - state_date).days
         result["age_days"] = age
         if age > max_age:
@@ -142,6 +145,7 @@ def check(root: Path, today: date | None = None, max_age: int = DEFAULT_MAX_AGE)
         result["reasons"].append("no `Last updated: YYYY-MM-DD` line in STATE.md")
 
     cutoff = date.fromisoformat(receipts["tracking_since"]) if receipts.get("tracking_since") else state_date
+    result["review_cutoff"] = cutoff.isoformat() if cutoff else None
     for day, record in decision_records(root):
         if (cutoff is None or day >= cutoff) and record["id"] not in reviewed:
             pending.append(record)
@@ -174,7 +178,7 @@ def acknowledge(root: Path, ids: list[str], today: date | None = None) -> None:
         known = set(records) | set(receipts["reviewed"])
         if not set(ids) <= known:
             raise ValueError("unknown decision ID; read the current --json output first")
-        cutoff = receipts.get("tracking_since", result["state_date"])
+        cutoff = receipts.get("tracking_since", result["review_cutoff"])
         receipts["tracking_since"] = min([cutoff] + [records[i].isoformat() for i in ids if i in records])
         receipts["reviewed"] = sorted(set(receipts["reviewed"]) | set(ids))
         with tempfile.NamedTemporaryFile(mode="w", dir=memory, prefix=".state-receipts-",

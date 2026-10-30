@@ -258,6 +258,23 @@ class TestStateFreshness(unittest.TestCase):
         state.write_text(state.read_text().replace(TODAY.isoformat(), later.isoformat()))
         self.assertEqual(len(json.loads(self.check(root, "--json", today=later).stdout)["pending_decisions"]), 1)
 
+    def test_future_state_date_needs_review_and_keeps_decisions_pending(self):
+        # Issue #1 (@mattabate): a typo like 11-30 for 10-30 made STATE look fresh.
+        root = make_project(self.base, state_date=TODAY + timedelta(days=30),
+                            daily={TODAY.isoformat(): "- **DECISION:** Postgres over SQLite\n"})
+        result = self.check(root)
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("in the future", result.stdout)
+        self.assertEqual(len(self.pending(root)), 1)
+
+    def test_begin_review_never_pins_a_future_cutoff(self):
+        root = make_project(self.base, state_date=TODAY + timedelta(days=30),
+                            daily={TODAY.isoformat(): "- **DECISION:** Postgres over SQLite\n"})
+        self.check(root, "--begin-review", "--json")
+        receipts = json.loads((root / "memory" / "state-receipts.json").read_text())
+        self.assertEqual(receipts["tracking_since"], TODAY.isoformat())
+        self.assertEqual(len(self.pending(root)), 1)
+
     def test_unknown_id_is_rejected(self):
         result = self.check(make_project(self.base), "--acknowledge", "0" * 64)
         self.assertEqual(result.returncode, 2)
